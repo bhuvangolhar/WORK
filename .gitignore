@@ -7,6 +7,11 @@
 # BlueJ files
 *.ctxt
 
+# Dependency directories
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 

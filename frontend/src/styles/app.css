@@ -1,0 +1,64 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+  text-align: center;
+}
+
+/* BIG & BOLD */
+.title {
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #0ea5e9;
+}
+
+/* Corporate subtitle */
+.subtitle {
+  font-size: 18px;
+  max-width: 520px;
+  color: #334155;
+}
+
+/* Placeholder box */
+.work-box {
+  width: 420px;
+  padding: 26px;
+  border: 3px solid #0ea5e9;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #0369a1;
+  background-color: #e0f2fe;
+}
+
+/* Strong CTA */
+.primary-btn {
+  padding: 14px 30px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0ea5e9;
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background-color: #0284c7;
+}
