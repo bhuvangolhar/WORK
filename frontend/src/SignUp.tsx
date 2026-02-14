@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 
+interface SignUpUserData {
+  email: string;
+  password: string;
+  fullName: string;
+  organizationName: string;
+  phoneNo: string;
+  verifyPassword: string;
+}
+
 interface SignUpProps {
-  onSignUpSuccess: () => void;
+  onSignUpSuccess: (userData: SignUpUserData) => void;
   onBackToSignIn: () => void;
 }
 
@@ -61,7 +70,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
 
     // Dummy sign-up logic
     console.log("Sign up with:", formData);
-    onSignUpSuccess();
+    onSignUpSuccess(formData);
   };
 
   return (

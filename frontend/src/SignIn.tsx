@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 interface SignInProps {
-  onSignInSuccess: () => void;
+  onSignInSuccess: (email: string, password: string) => void;
   onGoToSignUp: () => void;
 }
 
@@ -11,10 +11,10 @@ const SignIn: React.FC<SignInProps> = ({ onSignInSuccess, onGoToSignUp }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy sign-in logic
+    // Pass credentials to parent for validation
     if (email && password) {
       console.log("Sign in with:", email, password);
-      onSignInSuccess();
+      onSignInSuccess(email, password);
     }
   };
 

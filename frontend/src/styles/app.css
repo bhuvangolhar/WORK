@@ -293,6 +293,19 @@ body {
   margin: 0;
 }
 
+.welcome-user-info {
+  font-size: 15px;
+  color: #0284c7;
+  background-color: #e0f2fe;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin: 0;
+}
+
+.welcome-user-info strong {
+  font-weight: 600;
+}
+
 .welcome-message {
   padding: 20px;
   background-color: #f0f9ff;

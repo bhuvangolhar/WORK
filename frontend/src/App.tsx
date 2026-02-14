@@ -5,25 +5,45 @@ import Welcome from "./Welcome";
 
 type PageType = "home" | "signin" | "signup" | "welcome";
 
+interface SignedUpUser {
+  email: string;
+  password: string;
+  fullName: string;
+  organizationName: string;
+}
+
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
+  const [signedUpUsers, setSignedUpUsers] = useState<SignedUpUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<SignedUpUser | null>(null);
 
   const handleEnterWorkspace = () => {
     setCurrentPage("signin");
   };
 
-  const handleSignInSuccess = () => {
-    setCurrentPage("home");
-    // You can add logic here for successful sign in
+  const handleSignInSuccess = (email: string, password: string) => {
+    // Check if user exists in signed up users
+    const user = signedUpUsers.find(
+      (u) => u.email === email && u.password === password
+    );
+
+    if (user) {
+      setCurrentUser(user);
+      setCurrentPage("welcome");
+    } else {
+      setCurrentPage("home");
+    }
   };
 
   const handleGoToSignUp = () => {
     setCurrentPage("signup");
   };
 
-  const handleSignUpSuccess = () => {
+  const handleSignUpSuccess = (userData: SignedUpUser) => {
+    // Add user to signed up users list
+    setSignedUpUsers((prev) => [...prev, userData]);
+    setCurrentUser(userData);
     setCurrentPage("welcome");
-    // You can add logic here for successful sign up
   };
 
   const handleBackToSignIn = () => {
@@ -32,7 +52,7 @@ const App: React.FC = () => {
 
   const handleWelcomeContinue = () => {
     setCurrentPage("home");
-    // Redirect to dashboard or another page
+    setCurrentUser(null);
   };
 
   return (
@@ -69,8 +89,12 @@ const App: React.FC = () => {
         />
       )}
 
-      {currentPage === "welcome" && (
-        <Welcome onContinue={handleWelcomeContinue} />
+      {currentPage === "welcome" && currentUser && (
+        <Welcome 
+          onContinue={handleWelcomeContinue}
+          userName={currentUser.fullName}
+          organizationName={currentUser.organizationName}
+        />
       )}
     </>
   );
