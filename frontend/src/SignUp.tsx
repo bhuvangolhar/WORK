@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 
 interface SignUpUserData {
-  email: string;
-  password: string;
+  id: number;
   fullName: string;
   organizationName: string;
+  email: string;
   phoneNo: string;
-  verifyPassword: string;
 }
 
 interface SignUpProps {
@@ -25,6 +24,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,42 +35,78 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
     setError("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
     // Validation
     if (!formData.fullName.trim()) {
       setError("Full name is required");
+      setLoading(false);
       return;
     }
     if (!formData.organizationName.trim()) {
       setError("Organization name is required");
+      setLoading(false);
       return;
     }
     if (!formData.email.trim()) {
       setError("Email is required");
+      setLoading(false);
       return;
     }
     if (!formData.phoneNo.trim()) {
       setError("Phone number is required");
+      setLoading(false);
       return;
     }
     if (!formData.password) {
       setError("Password is required");
+      setLoading(false);
       return;
     }
     if (formData.password !== formData.verifyPassword) {
       setError("Passwords do not match");
+      setLoading(false);
       return;
     }
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters");
+      setLoading(false);
       return;
     }
 
-    // Dummy sign-up logic
-    console.log("Sign up with:", formData);
-    onSignUpSuccess(formData);
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          organizationName: formData.organizationName,
+          email: formData.email,
+          phoneNo: formData.phoneNo,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Sign up failed");
+        setLoading(false);
+        return;
+      }
+
+      onSignUpSuccess(data.user);
+    } catch (err) {
+      setError("Unable to connect to server. Please try again.");
+      console.error("Sign up error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -92,6 +128,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
               value={formData.fullName}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -105,6 +142,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
               value={formData.organizationName}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -118,6 +156,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
               value={formData.email}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -131,6 +170,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
               value={formData.phoneNo}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -144,6 +184,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
               value={formData.password}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -157,11 +198,12 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
               value={formData.verifyPassword}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" className="signup-btn">
-            Sign Up
+          <button type="submit" className="signup-btn" disabled={loading}>
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 
@@ -171,6 +213,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUpSuccess, onBackToSignIn }) => {
             type="button"
             className="link-btn"
             onClick={onBackToSignIn}
+            disabled={loading}
           >
             Sign In
           </button>

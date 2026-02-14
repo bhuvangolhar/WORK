@@ -130,6 +130,11 @@ body {
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 
+.form-group input:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+}
+
 .signin-btn {
   padding: 12px 24px;
   border: none;
@@ -144,6 +149,11 @@ body {
 
 .signin-btn:hover {
   background-color: #0284c7;
+}
+
+.signin-btn:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
 }
 
 .signin-footer {
@@ -169,7 +179,12 @@ body {
   font-weight: 600;
   cursor: pointer;
   padding: 0;
-  transition: color 0.3s;
+ 
+
+.link-btn:disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+} transition: color 0.3s;
 }
 
 .link-btn:hover {
@@ -239,7 +254,12 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s;
-  margin-top: 10px;
+ 
+
+.signup-btn:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+} margin-top: 10px;
 }
 
 .signup-btn:hover {

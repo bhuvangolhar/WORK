@@ -1,58 +1,47 @@
 import { useState } from "react";
 import SignIn from "./SignIn";
 import SignUp from "./SignUp";
-import Welcome from "./Welcome";
+import Dashboard from "./Dashboard";
 
-type PageType = "home" | "signin" | "signup" | "welcome";
+type PageType = "home" | "signin" | "signup" | "dashboard";
 
-interface SignedUpUser {
-  email: string;
-  password: string;
+interface CurrentUser {
+  id: number;
   fullName: string;
   organizationName: string;
+  email: string;
+  phoneNo: string;
 }
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
-  const [signedUpUsers, setSignedUpUsers] = useState<SignedUpUser[]>([]);
-  const [currentUser, setCurrentUser] = useState<SignedUpUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   const handleEnterWorkspace = () => {
     setCurrentPage("signin");
   };
 
-  const handleSignInSuccess = (email: string, password: string) => {
-    // Check if user exists in signed up users
-    const user = signedUpUsers.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (user) {
-      setCurrentUser(user);
-      setCurrentPage("welcome");
-    } else {
-      setCurrentPage("home");
-    }
+  const handleSignInSuccess = (user: CurrentUser) => {
+    setCurrentUser(user);
+    setCurrentPage("dashboard");
   };
 
   const handleGoToSignUp = () => {
     setCurrentPage("signup");
   };
 
-  const handleSignUpSuccess = (userData: SignedUpUser) => {
-    // Add user to signed up users list
-    setSignedUpUsers((prev) => [...prev, userData]);
-    setCurrentUser(userData);
-    setCurrentPage("welcome");
+  const handleSignUpSuccess = (user: CurrentUser) => {
+    setCurrentUser(user);
+    setCurrentPage("dashboard");
   };
 
   const handleBackToSignIn = () => {
     setCurrentPage("signin");
   };
 
-  const handleWelcomeContinue = () => {
-    setCurrentPage("home");
+  const handleLogout = () => {
     setCurrentUser(null);
+    setCurrentPage("home");
   };
 
   return (
@@ -89,11 +78,11 @@ const App: React.FC = () => {
         />
       )}
 
-      {currentPage === "welcome" && currentUser && (
-        <Welcome 
-          onContinue={handleWelcomeContinue}
+      {currentPage === "dashboard" && currentUser && (
+        <Dashboard 
           userName={currentUser.fullName}
           organizationName={currentUser.organizationName}
+          onLogout={handleLogout}
         />
       )}
     </>
