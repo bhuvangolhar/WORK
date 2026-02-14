@@ -1,11 +1,11 @@
 const pool = require("./db");
 
-// Create users table if it doesn't exist
+// Create users and tasks tables if they don't exist
 const initializeDatabase = async () => {
   try {
     const connection = await pool.getConnection();
 
-    const createTableQuery = `
+    const createUsersTableQuery = `
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         fullName VARCHAR(255) NOT NULL,
@@ -18,8 +18,25 @@ const initializeDatabase = async () => {
       )
     `;
 
-    await connection.execute(createTableQuery);
-    console.log("Users table initialized successfully");
+    const createTasksTableQuery = `
+      CREATE TABLE IF NOT EXISTS tasks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        status ENUM('Pending', 'In Progress', 'Completed') DEFAULT 'Pending',
+        priority ENUM('Low', 'Medium', 'High') DEFAULT 'Medium',
+        dueDate DATE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `;
+
+    await connection.execute(createUsersTableQuery);
+    await connection.execute(createTasksTableQuery);
+    
+    console.log("Database tables initialized successfully");
     connection.release();
   } catch (error) {
     console.error("Database initialization error:", error.message);

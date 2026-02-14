@@ -118,6 +118,7 @@ const App: React.FC = () => {
         <Dashboard 
           userName={currentUser.fullName}
           organizationName={currentUser.organizationName}
+          userId={currentUser.id}
           onLogout={handleLogout}
         />
       )}

@@ -1,29 +1,166 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+interface Task {
+  id: number;
+  userId: number;
+  title: string;
+  description: string;
+  status: "Pending" | "In Progress" | "Completed";
+  priority: "Low" | "Medium" | "High";
+  dueDate: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 interface DashboardProps {
   userName: string;
   organizationName: string;
   onLogout: () => void;
+  userId?: number;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
   userName,
   organizationName,
   onLogout,
+  userId: propUserId,
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    status: "Pending" as const,
+    priority: "Medium" as const,
+    dueDate: "",
+  });
+
+  // Get userId from localStorage
+  const getUserId = () => {
+    const currentUser = localStorage.getItem("currentUser");
+    if (currentUser) {
+      const user = JSON.parse(currentUser);
+      return user.id || propUserId;
+    }
+    return propUserId;
+  };
+
+  const userId = getUserId();
+
+  // Fetch tasks on component mount
+  useEffect(() => {
+    if (userId) {
+      fetchTasks();
+    }
+  }, [userId]);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:5000/api/tasks/${userId}`);
+      const data = await response.json();
+      if (data.success) {
+        setTasks(data.tasks);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddTask = () => {
+    setEditingTask(null);
+    setFormData({
+      title: "",
+      description: "",
+      status: "Pending",
+      priority: "Medium",
+      dueDate: "",
+    });
+    setShowTaskModal(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setFormData({
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.dueDate,
+    });
+    setShowTaskModal(true);
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (confirm("Are you sure you want to delete this task?")) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
+        if (data.success) {
+          setTasks(tasks.filter((t) => t.id !== taskId));
+        }
+      } catch (error) {
+        console.error("Error deleting task:", error);
+      }
+    }
+  };
+
+  const handleSaveTask = async () => {
+    if (!formData.title.trim()) {
+      alert("Please enter a task title");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      if (editingTask) {
+        // Update existing task
+        const response = await fetch(`http://localhost:5000/api/tasks/${editingTask.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        const data = await response.json();
+        if (data.success) {
+          setTasks(tasks.map((t) => (t.id === editingTask.id ? { ...t, ...formData } : t)));
+          setShowTaskModal(false);
+        }
+      } else {
+        // Create new task
+        const response = await fetch("http://localhost:5000/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            ...formData,
+          }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          fetchTasks(); // Refresh tasks list
+          setShowTaskModal(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving task:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [employees] = useState([
     { id: 1, name: "John Smith", position: "Senior Dev", status: "Present", joinDate: "2022-01-15" },
     { id: 2, name: "Sarah Johnson", position: "Designer", status: "Present", joinDate: "2023-03-20" },
     { id: 3, name: "Mike Davis", position: "Manager", status: "Away", joinDate: "2021-06-10" },
     { id: 4, name: "Emma Wilson", position: "Dev", status: "Present", joinDate: "2024-02-14" },
-  ]);
-
-  const [tasks] = useState([
-    { id: 1, title: "Website Redesign", status: "In Progress", priority: "High" },
-    { id: 2, title: "API Integration", status: "Pending", priority: "High" },
-    { id: 3, title: "Database Migration", status: "Completed", priority: "Medium" },
   ]);
 
   // Calculate anniversaries
@@ -396,21 +533,37 @@ const Dashboard: React.FC<DashboardProps> = ({
               <h2>Task Management</h2>
               <div className="section-card">
                 <div className="table-header">
-                  <button className="add-btn">+ New Task</button>
+                  <button className="add-btn" onClick={handleAddTask}>+ New Task</button>
                 </div>
-                <div className="tasks-list">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="task-item">
-                      <div className="task-info">
-                        <h4>{task.title}</h4>
-                        <p>Status: {task.status}</p>
+                {loading ? (
+                  <p style={{ textAlign: "center", padding: "20px", color: "#64748b" }}>Loading tasks...</p>
+                ) : tasks.length === 0 ? (
+                  <p style={{ textAlign: "center", padding: "20px", color: "#64748b" }}>No tasks yet. Click "+ New Task" to create one.</p>
+                ) : (
+                  <div className="tasks-list">
+                    {tasks.map((task) => (
+                      <div key={task.id} className="task-item">
+                        <div className="task-info">
+                          <h4>{task.title}</h4>
+                          {task.description && <p>{task.description}</p>}
+                          <div className="task-meta">
+                            <span className={`status-badge ${task.status.toLowerCase().replace(" ", "-")}`}>
+                              {task.status}
+                            </span>
+                            <span className={`priority-badge ${task.priority.toLowerCase()}`}>
+                              {task.priority}
+                            </span>
+                            {task.dueDate && <span className="due-date">Due: {task.dueDate}</span>}
+                          </div>
+                        </div>
+                        <div className="task-actions">
+                          <button className="edit-btn" onClick={() => handleEditTask(task)}>Edit</button>
+                          <button className="delete-btn" onClick={() => handleDeleteTask(task.id)}>Delete</button>
+                        </div>
                       </div>
-                      <span className={`priority-badge ${task.priority.toLowerCase()}`}>
-                        {task.priority}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -503,6 +656,76 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
           )}
         </main>
+
+        {/* Task Modal */}
+        {showTaskModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <div className="modal-header">
+                <h2>{editingTask ? "Edit Task" : "Create New Task"}</h2>
+                <button className="modal-close" onClick={() => setShowTaskModal(false)}>✕</button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Task Title *</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Enter task title"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Enter task description"
+                    rows={4}
+                  ></textarea>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Priority</label>
+                    <select
+                      value={formData.priority}
+                      onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Due Date</label>
+                  <input
+                    type="date"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => setShowTaskModal(false)}>Cancel</button>
+                <button className="btn-primary" onClick={handleSaveTask} disabled={loading}>
+                  {loading ? "Saving..." : editingTask ? "Update Task" : "Create Task"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
