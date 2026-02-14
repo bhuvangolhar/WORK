@@ -2,9 +2,10 @@ import React, { useState } from "react";
 
 interface SignInProps {
   onSignInSuccess: () => void;
+  onGoToSignUp: () => void;
 }
 
-const SignIn: React.FC<SignInProps> = ({ onSignInSuccess }) => {
+const SignIn: React.FC<SignInProps> = ({ onSignInSuccess, onGoToSignUp }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -54,6 +55,17 @@ const SignIn: React.FC<SignInProps> = ({ onSignInSuccess }) => {
         </form>
 
         <p className="signin-footer">
+          Don't have an account?{" "}
+          <button
+            type="button"
+            className="link-btn"
+            onClick={onGoToSignUp}
+          >
+            Sign Up
+          </button>
+        </p>
+
+        <p className="signin-demo">
           Demo credentials: any email/password combination works
         </p>
       </div>

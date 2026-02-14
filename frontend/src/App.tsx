@@ -1,22 +1,37 @@
 import { useState } from "react";
 import SignIn from "./SignIn";
+import SignUp from "./SignUp";
+
+type PageType = "home" | "signin" | "signup";
 
 const App: React.FC = () => {
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [currentPage, setCurrentPage] = useState<PageType>("home");
 
   const handleEnterWorkspace = () => {
-    setIsSignedIn(true);
+    setCurrentPage("signin");
   };
 
   const handleSignInSuccess = () => {
-    setIsSignedIn(true);
+    setCurrentPage("home");
+    // You can add logic here for successful sign in
+  };
+
+  const handleGoToSignUp = () => {
+    setCurrentPage("signup");
+  };
+
+  const handleSignUpSuccess = () => {
+    setCurrentPage("signin");
+    // You can add logic here for successful sign up
+  };
+
+  const handleBackToSignIn = () => {
+    setCurrentPage("signin");
   };
 
   return (
     <>
-      {isSignedIn ? (
-        <SignIn onSignInSuccess={handleSignInSuccess} />
-      ) : (
+      {currentPage === "home" && (
         <div className="app">
           <h1 className="title">WORK</h1>
 
@@ -32,6 +47,20 @@ const App: React.FC = () => {
             Enter Workspace
           </button>
         </div>
+      )}
+
+      {currentPage === "signin" && (
+        <SignIn
+          onSignInSuccess={handleSignInSuccess}
+          onGoToSignUp={handleGoToSignUp}
+        />
+      )}
+
+      {currentPage === "signup" && (
+        <SignUp
+          onSignUpSuccess={handleSignUpSuccess}
+          onBackToSignIn={handleBackToSignIn}
+        />
       )}
     </>
   );
