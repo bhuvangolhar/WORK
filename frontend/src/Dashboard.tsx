@@ -12,6 +12,25 @@ interface Task {
   updatedAt?: string;
 }
 
+interface Employee {
+  id: number;
+  userId: number;
+  fullName: string;
+  email: string;
+  phoneNo: string;
+  position: string;
+  department: string;
+  employmentType: "Full-time" | "Part-time" | "Contract" | "Intern";
+  joinDate: string;
+  status: "Active" | "Inactive" | "On Leave";
+  reportingTo: string;
+  address: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  skills: string;
+  salary: number;
+}
+
 interface DashboardProps {
   userName: string;
   organizationName: string;
@@ -27,15 +46,34 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [taskFormData, setTaskFormData] = useState({
     title: "",
     description: "",
     status: "Pending" as const,
     priority: "Medium" as const,
     dueDate: "",
+  });
+  const [employeeFormData, setEmployeeFormData] = useState({
+    fullName: "",
+    email: "",
+    phoneNo: "",
+    position: "",
+    department: "Engineering",
+    employmentType: "Full-time" as const,
+    joinDate: "",
+    status: "Active" as const,
+    reportingTo: "",
+    address: "",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    skills: "",
+    salary: "",
   });
 
   // Get userId from localStorage
@@ -50,16 +88,16 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const userId = getUserId();
 
-  // Fetch tasks on component mount
+  // Fetch data on component mount
   useEffect(() => {
     if (userId) {
       fetchTasks();
+      fetchEmployees();
     }
   }, [userId]);
 
   const fetchTasks = async () => {
     try {
-      setLoading(true);
       const response = await fetch(`http://localhost:5000/api/tasks/${userId}`);
       const data = await response.json();
       if (data.success) {
@@ -67,14 +105,25 @@ const Dashboard: React.FC<DashboardProps> = ({
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/employees/${userId}`);
+      const data = await response.json();
+      if (data.success) {
+        setEmployees(data.employees);
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  // Task Management
   const handleAddTask = () => {
     setEditingTask(null);
-    setFormData({
+    setTaskFormData({
       title: "",
       description: "",
       status: "Pending",
@@ -86,7 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
-    setFormData({
+    setTaskFormData({
       title: task.title,
       description: task.description,
       status: task.status,
@@ -113,7 +162,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const handleSaveTask = async () => {
-    if (!formData.title.trim()) {
+    if (!taskFormData.title.trim()) {
       alert("Please enter a task title");
       return;
     }
@@ -122,30 +171,28 @@ const Dashboard: React.FC<DashboardProps> = ({
       setLoading(true);
 
       if (editingTask) {
-        // Update existing task
         const response = await fetch(`http://localhost:5000/api/tasks/${editingTask.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(taskFormData),
         });
         const data = await response.json();
         if (data.success) {
-          setTasks(tasks.map((t) => (t.id === editingTask.id ? { ...t, ...formData } : t)));
+          setTasks(tasks.map((t) => (t.id === editingTask.id ? { ...t, ...taskFormData } : t)));
           setShowTaskModal(false);
         }
       } else {
-        // Create new task
         const response = await fetch("http://localhost:5000/api/tasks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId,
-            ...formData,
+            ...taskFormData,
           }),
         });
         const data = await response.json();
         if (data.success) {
-          fetchTasks(); // Refresh tasks list
+          fetchTasks();
           setShowTaskModal(false);
         }
       }
@@ -156,12 +203,110 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
-  const [employees] = useState([
-    { id: 1, name: "John Smith", position: "Senior Dev", status: "Present", joinDate: "2022-01-15" },
-    { id: 2, name: "Sarah Johnson", position: "Designer", status: "Present", joinDate: "2023-03-20" },
-    { id: 3, name: "Mike Davis", position: "Manager", status: "Away", joinDate: "2021-06-10" },
-    { id: 4, name: "Emma Wilson", position: "Dev", status: "Present", joinDate: "2024-02-14" },
-  ]);
+  // Employee Management
+  const handleAddEmployee = () => {
+    setEditingEmployee(null);
+    setEmployeeFormData({
+      fullName: "",
+      email: "",
+      phoneNo: "",
+      position: "",
+      department: "Engineering",
+      employmentType: "Full-time",
+      joinDate: "",
+      status: "Active",
+      reportingTo: "",
+      address: "",
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      skills: "",
+      salary: "",
+    });
+    setShowEmployeeModal(true);
+  };
+
+  const handleEditEmployee = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setEmployeeFormData({
+      fullName: employee.fullName,
+      email: employee.email,
+      phoneNo: employee.phoneNo || "",
+      position: employee.position,
+      department: employee.department,
+      employmentType: employee.employmentType,
+      joinDate: employee.joinDate,
+      status: employee.status,
+      reportingTo: employee.reportingTo || "",
+      address: employee.address || "",
+      emergencyContactName: employee.emergencyContactName || "",
+      emergencyContactPhone: employee.emergencyContactPhone || "",
+      skills: employee.skills || "",
+      salary: employee.salary ? employee.salary.toString() : "",
+    });
+    setShowEmployeeModal(true);
+  };
+
+  const handleDeleteEmployee = async (employeeId: number) => {
+    if (confirm("Are you sure you want to delete this employee?")) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/employees/${employeeId}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
+        if (data.success) {
+          setEmployees(employees.filter((e) => e.id !== employeeId));
+        }
+      } catch (error) {
+        console.error("Error deleting employee:", error);
+      }
+    }
+  };
+
+  const handleSaveEmployee = async () => {
+    if (!employeeFormData.fullName.trim() || !employeeFormData.email.trim() || !employeeFormData.position.trim() || !employeeFormData.joinDate) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      if (editingEmployee) {
+        const response = await fetch(`http://localhost:5000/api/employees/${editingEmployee.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...employeeFormData,
+            salary: employeeFormData.salary ? parseFloat(employeeFormData.salary) : null,
+          }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          fetchEmployees();
+          setShowEmployeeModal(false);
+        }
+      } else {
+        const response = await fetch("http://localhost:5000/api/employees", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            ...employeeFormData,
+            salary: employeeFormData.salary ? parseFloat(employeeFormData.salary) : null,
+          }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          fetchEmployees();
+          setShowEmployeeModal(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving employee:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate anniversaries
   const today = new Date();
@@ -495,35 +640,75 @@ const Dashboard: React.FC<DashboardProps> = ({
               <h2>Employee Management</h2>
               <div className="section-card">
                 <div className="table-header">
-                  <button className="add-btn">+ Add Employee</button>
+                  <button className="add-btn" onClick={handleAddEmployee}>+ Add Employee</button>
                 </div>
-                <table className="employees-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Position</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                {employees.length === 0 ? (
+                  <p style={{ textAlign: "center", padding: "40px 20px", color: "#64748b" }}>
+                    No employees yet. Click "+ Add Employee" to create one.
+                  </p>
+                ) : (
+                  <div className="employees-grid">
                     {employees.map((emp) => (
-                      <tr key={emp.id}>
-                        <td>{emp.name}</td>
-                        <td>{emp.position}</td>
-                        <td>
+                      <div key={emp.id} className="employee-card">
+                        <div className="employee-card-header">
+                          <div className="employee-avatar">
+                            {emp.fullName.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="employee-basic">
+                            <h3>{emp.fullName}</h3>
+                            <p className="position">{emp.position}</p>
+                            <p className="email">{emp.email}</p>
+                          </div>
                           <span className={`status-badge ${emp.status.toLowerCase()}`}>
                             {emp.status}
                           </span>
-                        </td>
-                        <td>
-                          <button className="action-btn">View</button>
-                          <button className="action-btn">Edit</button>
-                        </td>
-                      </tr>
+                        </div>
+                        <div className="employee-details">
+                          <div className="detail-row">
+                            <span className="label">Department:</span>
+                            <span className="value">{emp.department}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="label">Employment Type:</span>
+                            <span className="value">{emp.employmentType}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="label">Join Date:</span>
+                            <span className="value">{new Date(emp.joinDate).toLocaleDateString()}</span>
+                          </div>
+                          {emp.phoneNo && (
+                            <div className="detail-row">
+                              <span className="label">Phone:</span>
+                              <span className="value">{emp.phoneNo}</span>
+                            </div>
+                          )}
+                          {emp.reportingTo && (
+                            <div className="detail-row">
+                              <span className="label">Reports To:</span>
+                              <span className="value">{emp.reportingTo}</span>
+                            </div>
+                          )}
+                          {emp.skills && (
+                            <div className="detail-row full">
+                              <span className="label">Skills:</span>
+                              <span className="value">{emp.skills}</span>
+                            </div>
+                          )}
+                          {emp.salary && (
+                            <div className="detail-row">
+                              <span className="label">Salary:</span>
+                              <span className="value salary">₹{emp.salary.toLocaleString()}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="employee-actions">
+                          <button className="edit-btn" onClick={() => handleEditEmployee(emp)}>Edit</button>
+                          <button className="delete-btn" onClick={() => handleDeleteEmployee(emp.id)}>Delete</button>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -670,16 +855,16 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <label>Task Title *</label>
                   <input
                     type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    value={taskFormData.title}
+                    onChange={(e) => setTaskFormData({ ...taskFormData, title: e.target.value })}
                     placeholder="Enter task title"
                   />
                 </div>
                 <div className="form-group">
                   <label>Description</label>
                   <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    value={taskFormData.description}
+                    onChange={(e) => setTaskFormData({ ...taskFormData, description: e.target.value })}
                     placeholder="Enter task description"
                     rows={4}
                   ></textarea>
@@ -688,8 +873,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <div className="form-group">
                     <label>Status</label>
                     <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      value={taskFormData.status}
+                      onChange={(e) => setTaskFormData({ ...taskFormData, status: e.target.value as any })}
                     >
                       <option value="Pending">Pending</option>
                       <option value="In Progress">In Progress</option>
@@ -699,8 +884,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <div className="form-group">
                     <label>Priority</label>
                     <select
-                      value={formData.priority}
-                      onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                      value={taskFormData.priority}
+                      onChange={(e) => setTaskFormData({ ...taskFormData, priority: e.target.value as any })}
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -712,8 +897,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <label>Due Date</label>
                   <input
                     type="date"
-                    value={formData.dueDate}
-                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                    value={taskFormData.dueDate}
+                    onChange={(e) => setTaskFormData({ ...taskFormData, dueDate: e.target.value })}
                   />
                 </div>
               </div>
@@ -721,6 +906,182 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <button className="btn-secondary" onClick={() => setShowTaskModal(false)}>Cancel</button>
                 <button className="btn-primary" onClick={handleSaveTask} disabled={loading}>
                   {loading ? "Saving..." : editingTask ? "Update Task" : "Create Task"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Employee Modal */}
+        {showEmployeeModal && (
+          <div className="modal-overlay">
+            <div className="modal modal-large">
+              <div className="modal-header">
+                <h2>{editingEmployee ? "Edit Employee" : "Add New Employee"}</h2>
+                <button className="modal-close" onClick={() => setShowEmployeeModal(false)}>✕</button>
+              </div>
+              <div className="modal-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Full Name *</label>
+                    <input
+                      type="text"
+                      value={employeeFormData.fullName}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, fullName: e.target.value })}
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Email *</label>
+                    <input
+                      type="email"
+                      value={employeeFormData.email}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, email: e.target.value })}
+                      placeholder="Enter email"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Phone Number</label>
+                    <input
+                      type="tel"
+                      value={employeeFormData.phoneNo}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, phoneNo: e.target.value })}
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Position *</label>
+                    <input
+                      type="text"
+                      value={employeeFormData.position}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, position: e.target.value })}
+                      placeholder="e.g., Senior Developer"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Department *</label>
+                    <select
+                      value={employeeFormData.department}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, department: e.target.value })}
+                    >
+                      <option value="Engineering">Engineering</option>
+                      <option value="Design">Design</option>
+                      <option value="Sales">Sales</option>
+                      <option value="HR">HR</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Operations">Operations</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Employment Type</label>
+                    <select
+                      value={employeeFormData.employmentType}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, employmentType: e.target.value as any })}
+                    >
+                      <option value="Full-time">Full-time</option>
+                      <option value="Part-time">Part-time</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Intern">Intern</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Join Date *</label>
+                    <input
+                      type="date"
+                      value={employeeFormData.joinDate}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, joinDate: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      value={employeeFormData.status}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, status: e.target.value as any })}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                      <option value="On Leave">On Leave</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Reporting To</label>
+                    <input
+                      type="text"
+                      value={employeeFormData.reportingTo}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, reportingTo: e.target.value })}
+                      placeholder="Manager's name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Salary</label>
+                    <input
+                      type="number"
+                      value={employeeFormData.salary}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, salary: e.target.value })}
+                      placeholder="Annual salary"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Address</label>
+                  <textarea
+                    value={employeeFormData.address}
+                    onChange={(e) => setEmployeeFormData({ ...employeeFormData, address: e.target.value })}
+                    placeholder="Enter address"
+                    rows={2}
+                  ></textarea>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Emergency Contact Name</label>
+                    <input
+                      type="text"
+                      value={employeeFormData.emergencyContactName}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, emergencyContactName: e.target.value })}
+                      placeholder="Contact name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Emergency Contact Phone</label>
+                    <input
+                      type="tel"
+                      value={employeeFormData.emergencyContactPhone}
+                      onChange={(e) => setEmployeeFormData({ ...employeeFormData, emergencyContactPhone: e.target.value })}
+                      placeholder="Contact phone"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Skills</label>
+                  <textarea
+                    value={employeeFormData.skills}
+                    onChange={(e) => setEmployeeFormData({ ...employeeFormData, skills: e.target.value })}
+                    placeholder="e.g., React, Node.js, TypeScript"
+                    rows={2}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => setShowEmployeeModal(false)}>Cancel</button>
+                <button className="btn-primary" onClick={handleSaveEmployee} disabled={loading}>
+                  {loading ? "Saving..." : editingEmployee ? "Update Employee" : "Add Employee"}
                 </button>
               </div>
             </div>

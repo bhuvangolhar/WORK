@@ -1295,3 +1295,203 @@
   background-color: #e2e8f0;
   border-radius: 4px;
 }
+
+/* Employee Management */
+.modal-large {
+  max-width: 750px;
+}
+
+.employees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.employee-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.employee-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: #0ea5e9;
+}
+
+.employee-card-header {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
+  align-items: flex-start;
+}
+
+.employee-avatar {
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.employee-basic {
+  flex: 1;
+}
+
+.employee-basic h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.employee-basic .position {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #0ea5e9;
+  font-weight: 600;
+}
+
+.employee-basic .email {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.employee-card .status-badge {
+  padding: 6px 12px;
+  font-size: 11px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.status-badge.active {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.inactive {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.on-leave {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.employee-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.detail-row.full {
+  grid-template-columns: 1fr;
+}
+
+.detail-row .label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.detail-row .value {
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.detail-row .value.salary {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.employee-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.employee-actions .edit-btn,
+.employee-actions .delete-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.employee-actions .edit-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.employee-actions .edit-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.employee-actions .delete-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.employee-actions .delete-btn:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1024px) {
+  .employees-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .employees-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-large {
+    max-width: 90%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-row {
+    grid-template-columns: 100px 1fr;
+  }
+
+  .employee-card-header {
+    flex-direction: column;
+  }
+
+  .employee-actions {
+    flex-direction: column;
+  }
+}

@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const initializeDatabase = require("./initDb");
 const authRoutes = require("./routes/authRoutes");
+const employeeRoutes = require("./routes/employeeRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 
 const app = express();
@@ -17,6 +18,7 @@ initializeDatabase();
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/employees", employeeRoutes);
 app.use("/api/tasks", taskRoutes);
 
 // Health check
