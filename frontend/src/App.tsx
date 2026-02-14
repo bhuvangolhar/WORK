@@ -1,8 +1,9 @@
 import { useState } from "react";
 import SignIn from "./SignIn";
 import SignUp from "./SignUp";
+import Welcome from "./Welcome";
 
-type PageType = "home" | "signin" | "signup";
+type PageType = "home" | "signin" | "signup" | "welcome";
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
@@ -21,12 +22,17 @@ const App: React.FC = () => {
   };
 
   const handleSignUpSuccess = () => {
-    setCurrentPage("signin");
+    setCurrentPage("welcome");
     // You can add logic here for successful sign up
   };
 
   const handleBackToSignIn = () => {
     setCurrentPage("signin");
+  };
+
+  const handleWelcomeContinue = () => {
+    setCurrentPage("home");
+    // Redirect to dashboard or another page
   };
 
   return (
@@ -61,6 +67,10 @@ const App: React.FC = () => {
           onSignUpSuccess={handleSignUpSuccess}
           onBackToSignIn={handleBackToSignIn}
         />
+      )}
+
+      {currentPage === "welcome" && (
+        <Welcome onContinue={handleWelcomeContinue} />
       )}
     </>
   );

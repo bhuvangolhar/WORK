@@ -251,3 +251,105 @@ body {
   color: #64748b;
   text-align: center;
 }
+
+/* Welcome Page Styles */
+.welcome-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+}
+
+.welcome-box {
+  width: 100%;
+  max-width: 500px;
+  padding: 50px 40px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+}
+
+.welcome-icon {
+  font-size: 60px;
+  color: #10b981;
+  margin-bottom: 10px;
+}
+
+.welcome-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+}
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+}
+
+.welcome-message {
+  padding: 20px;
+  background-color: #f0f9ff;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.welcome-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.feature {
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #334155;
+}
+
+.feature-icon {
+  font-size: 20px;
+}
+
+.feature p {
+  margin: 0;
+  text-align: left;
+}
+
+.welcome-btn {
+  padding: 14px 30px;
+  border: none;
+  border-radius: 6px;
+  background-color: #0ea5e9;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.welcome-btn:hover {
+  background-color: #0284c7;
+}
+
+.welcome-footer {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
