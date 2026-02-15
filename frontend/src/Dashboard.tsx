@@ -863,6 +863,13 @@ const Dashboard: React.FC<DashboardProps> = ({
               <span className="nav-icon">⚙️</span>
               <span>Settings</span>
             </button>
+            <button
+              className={`nav-item ${activeTab === "about" ? "active" : ""}`}
+              onClick={() => setActiveTab("about")}
+            >
+              <span className="nav-icon">ℹ️</span>
+              <span>About</span>
+            </button>
           </nav>
         </aside>
 
@@ -2307,6 +2314,287 @@ const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "about" && (
+            <div className="content-section">
+              {/* Hero Banner */}
+              <div className="about-hero">
+                <div className="hero-content">
+                  <h1>About XYZ Office</h1>
+                  <p className="hero-subtitle">Empowering Teams. Growing Together. Building Excellence Since 2015</p>
+                </div>
+                <div className="hero-stats">
+                  <div className="stat">
+                    <span className="stat-number">500+</span>
+                    <span className="stat-label">Team Members</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-number">50+</span>
+                    <span className="stat-label">Global Offices</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-number">1000+</span>
+                    <span className="stat-label">Projects Delivered</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-number">9 Years</span>
+                    <span className="stat-label">In Business</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Company Overview */}
+              <div className="about-section">
+                <h2>Who We Are</h2>
+                <p>
+                  XYZ Office is a leading workplace management and office solutions company committed to transforming how modern teams work. 
+                  We believe that the right tools and environment can unlock human potential and drive extraordinary results.
+                </p>
+                <p>
+                  With over 500 dedicated professionals across 50 global offices, we serve thousands of companies across multiple industries, 
+                  helping them optimize their workforce management, enhance collaboration, and drive business growth.
+                </p>
+              </div>
+
+              {/* Mission, Vision, Values */}
+              <div className="values-grid">
+                <div className="value-card">
+                  <div className="value-icon">🎯</div>
+                  <h3>Our Mission</h3>
+                  <p>To empower organizations to manage and nurture their most valuable asset—their people—through innovative technology and human-centered design.</p>
+                </div>
+                <div className="value-card">
+                  <div className="value-icon">🚀</div>
+                  <h3>Our Vision</h3>
+                  <p>A world where every workplace is dynamic, inclusive, and designed to bring out the best in every team member.</p>
+                </div>
+                <div className="value-card">
+                  <div className="value-icon">💎</div>
+                  <h3>Core Values</h3>
+                  <ul className="values-list">
+                    <li>🤝 Integrity & Trust</li>
+                    <li>📈 Excellence in Execution</li>
+                    <li>🌍 Diversity & Inclusion</li>
+                    <li>🔄 Continuous Innovation</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Global Offices */}
+              <div className="about-section">
+                <h2>Global Presence</h2>
+                <div className="offices-grid">
+                  <div className="office-card">
+                    <h4>🇺🇸 North America</h4>
+                    <p><strong>Headquarters:</strong> New York, USA</p>
+                    <p>Regional Offices:</p>
+                    <ul>
+                      <li>San Francisco, California</li>
+                      <li>Chicago, Illinois</li>
+                      <li>Toronto, Canada</li>
+                    </ul>
+                  </div>
+                  <div className="office-card">
+                    <h4>🇪🇺 Europe</h4>
+                    <p><strong>Regional Hub:</strong> London, UK</p>
+                    <p>Additional Offices:</p>
+                    <ul>
+                      <li>Berlin, Germany</li>
+                      <li>Paris, France</li>
+                      <li>Amsterdam, Netherlands</li>
+                    </ul>
+                  </div>
+                  <div className="office-card">
+                    <h4>🌏 Asia-Pacific</h4>
+                    <p><strong>Regional Hub:</strong> Singapore</p>
+                    <p>Additional Offices:</p>
+                    <ul>
+                      <li>Tokyo, Japan</li>
+                      <li>Sydney, Australia</li>
+                      <li>Mumbai, India</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Team Highlights */}
+              <div className="about-section">
+                <h2>Leadership Team</h2>
+                <div className="team-grid">
+                  <div className="team-member">
+                    <div className="member-avatar">👨‍💼</div>
+                    <h4>John Richardson</h4>
+                    <p className="member-role">Chief Executive Officer</p>
+                    <p className="member-bio">15+ years in enterprise software with a passion for workplace innovation.</p>
+                  </div>
+                  <div className="team-member">
+                    <div className="member-avatar">👩‍💼</div>
+                    <h4>Sarah Anderson</h4>
+                    <p className="member-role">Chief Technology Officer</p>
+                    <p className="member-bio">Tech visionary leading our AI and cloud infrastructure initiatives.</p>
+                  </div>
+                  <div className="team-member">
+                    <div className="member-avatar">👨‍💼</div>
+                    <h4>Michael Chen</h4>
+                    <p className="member-role">Chief Commercial Officer</p>
+                    <p className="member-bio">Strategic business leader driving growth across global markets.</p>
+                  </div>
+                  <div className="team-member">
+                    <div className="member-avatar">👩‍💼</div>
+                    <h4>Emily Thompson</h4>
+                    <p className="member-role">VP of Operations</p>
+                    <p className="member-bio">Operations expert ensuring excellence in every customer interaction.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Company Culture */}
+              <div className="about-section">
+                <h2>Our Culture</h2>
+                <p>
+                  At XYZ Office, we believe that great work happens when people feel valued, supported, and empowered to be their best selves.
+                </p>
+                <div className="culture-highlights">
+                  <div className="culture-item">
+                    <span className="culture-icon">🎓</span>
+                    <h4>Continuous Learning</h4>
+                    <p>We invest in our people through training, mentorship, and professional development programs.</p>
+                  </div>
+                  <div className="culture-item">
+                    <span className="culture-icon">🤝</span>
+                    <h4>Collaboration</h4>
+                    <p>Cross-functional teams work together to solve complex problems and create innovative solutions.</p>
+                  </div>
+                  <div className="culture-item">
+                    <span className="culture-icon">🏆</span>
+                    <h4>Excellence</h4>
+                    <p>We maintain high standards and celebrate the achievements of our team and customers.</p>
+                  </div>
+                  <div className="culture-item">
+                    <span className="culture-icon">🌱</span>
+                    <h4>Sustainability</h4>
+                    <p>We're committed to building a sustainable future for our communities and planet.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Key Achievements */}
+              <div className="about-section">
+                <h2>Key Achievements</h2>
+                <div className="achievements-list">
+                  <div className="achievement">
+                    <span className="achievement-year">2015</span>
+                    <div className="achievement-content">
+                      <h4>Founded</h4>
+                      <p>XYZ Office launched with a mission to revolutionize workplace management</p>
+                    </div>
+                  </div>
+                  <div className="achievement">
+                    <span className="achievement-year">2017</span>
+                    <div className="achievement-content">
+                      <h4>International Expansion</h4>
+                      <p>Opened offices in Europe and Asia, serving 5000+ customers globally</p>
+                    </div>
+                  </div>
+                  <div className="achievement">
+                    <span className="achievement-year">2020</span>
+                    <div className="achievement-content">
+                      <h4>Series B Funding</h4>
+                      <p>Raised $50M to accelerate product innovation and market expansion</p>
+                    </div>
+                  </div>
+                  <div className="achievement">
+                    <span className="achievement-year">2023</span>
+                    <div className="achievement-content">
+                      <h4>Industry Recognition</h4>
+                      <p>Recognized as Best Workplace Technology by Global Business Leaders</p>
+                    </div>
+                  </div>
+                  <div className="achievement">
+                    <span className="achievement-year">2024</span>
+                    <div className="achievement-content">
+                      <h4>AI Innovation</h4>
+                      <p>Launched AI-powered insights platform, revolutionizing team analytics</p>
+                    </div>
+                  </div>
+                  <div className="achievement">
+                    <span className="achievement-year">2026</span>
+                    <div className="achievement-content">
+                      <h4>Market Leader</h4>
+                      <p>Became the #1 workplace management platform trusted by 50,000+ organizations</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistics Section */}
+              <div className="about-section stats-section">
+                <h2>By The Numbers</h2>
+                <div className="detailed-stats">
+                  <div className="detailed-stat">
+                    <span className="big-number">500+</span>
+                    <span className="stat-desc">Team Members Worldwide</span>
+                  </div>
+                  <div className="detailed-stat">
+                    <span className="big-number">50+</span>
+                    <span className="stat-desc">Global Office Locations</span>
+                  </div>
+                  <div className="detailed-stat">
+                    <span className="big-number">50K+</span>
+                    <span className="stat-desc">Enterprise Customers</span>
+                  </div>
+                  <div className="detailed-stat">
+                    <span className="big-number">100M+</span>
+                    <span className="stat-desc">Users Worldwide</span>
+                  </div>
+                  <div className="detailed-stat">
+                    <span className="big-number">150+</span>
+                    <span className="stat-desc">Countries Served</span>
+                  </div>
+                  <div className="detailed-stat">
+                    <span className="big-number">99.9%</span>
+                    <span className="stat-desc">Uptime Reliability</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact CTA */}
+              <div className="about-section contact-cta">
+                <h2>Get In Touch</h2>
+                <p>Have questions? Our team would love to hear from you.</p>
+                <div className="contact-info">
+                  <div className="contact-item">
+                    <span className="contact-icon">📧</span>
+                    <div>
+                      <h4>Email</h4>
+                      <p>hello@xyzoffice.com</p>
+                    </div>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">📞</span>
+                    <div>
+                      <h4>Phone</h4>
+                      <p>+1 (800) 555-0123</p>
+                    </div>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">📍</span>
+                    <div>
+                      <h4>Headquarters</h4>
+                      <p>123 Innovation Drive, New York, NY 10001</p>
+                    </div>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">🔗</span>
+                    <div>
+                      <h4>Social Media</h4>
+                      <p>Twitter • LinkedIn • Facebook • Instagram</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
