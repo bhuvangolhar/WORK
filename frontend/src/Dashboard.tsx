@@ -102,6 +102,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     salary: "",
   });
 
+  // Calendar state
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
   // Get userId from project-specific localStorage
   const getUserId = () => {
     const currentUser = localStorage.getItem(STORAGE_KEY);
@@ -113,6 +118,58 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const userId = getUserId();
+
+  // Calendar helper functions
+  const getDaysInMonth = (month: number, year: number): number => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (month: number, year: number): number => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  const getTasksForDate = (date: Date): Task[] => {
+    const dateStr = date.toISOString().split('T')[0];
+    return tasks.filter(task => task.dueDate && task.dueDate.split('T')[0] === dateStr);
+  };
+
+  const formatDateForDisplay = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const previousMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  const getTodayTasks = (): Task[] => {
+    return getTasksForDate(new Date());
+  };
+
+  const getTaskColor = (task: Task): string => {
+    if (task.status === "Completed") return "#10b981"; // green
+    if (task.priority === "High") return "#ef4444"; // red
+    if (task.priority === "Medium") return "#f59e0b"; // orange
+    return "#3b82f6"; // blue
+  };
 
   // Fetch data on component mount
   useEffect(() => {
@@ -991,14 +1048,184 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           {activeTab === "schedule" && (
             <div className="content-section">
-              <h2>Team Schedule</h2>
-              <div className="section-card">
-                <div className="calendar-placeholder">
-                  <div className="placeholder-icon">📅</div>
-                  <p>Calendar view coming soon</p>
-                  <p style={{ fontSize: "14px", color: "#64748b" }}>
-                    Schedule management and team availability tracking
-                  </p>
+              <h2>Team Schedule & Calendar</h2>
+              <div className="calendar-container">
+                {/* Calendar Header with Navigation */}
+                <div className="calendar-header">
+                  <button className="nav-button" onClick={previousMonth}>
+                    ← Previous
+                  </button>
+                  <h3>
+                    {new Date(currentYear, currentMonth).toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </h3>
+                  <button className="nav-button" onClick={nextMonth}>
+                    Next →
+                  </button>
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="calendar-wrapper">
+                  {/* Weekday Headers */}
+                  <div className="calendar-weekdays">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <div key={day} className="weekday-header">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Days */}
+                  <div className="calendar-days">
+                    {Array.from({ length: getFirstDayOfMonth(currentMonth, currentYear) }).map(
+                      (_, index) => (
+                        <div key={`empty-${index}`} className="calendar-day empty"></div>
+                      )
+                    )}
+
+                    {Array.from({ length: getDaysInMonth(currentMonth, currentYear) }).map(
+                      (_, index) => {
+                        const date = new Date(currentYear, currentMonth, index + 1);
+                        const dayTasks = getTasksForDate(date);
+                        const isToday =
+                          date.toDateString() === new Date().toDateString();
+                        const isSelected =
+                          date.toDateString() === selectedDate.toDateString();
+
+                        return (
+                          <div
+                            key={`day-${index + 1}`}
+                            className={`calendar-day ${isToday ? 'today' : ''} ${
+                              isSelected ? 'selected' : ''
+                            }`}
+                            onClick={() => setSelectedDate(date)}
+                          >
+                            <div className="day-number">{index + 1}</div>
+                            {dayTasks.length > 0 && (
+                              <div className="day-tasks">
+                                {dayTasks.slice(0, 2).map((task) => (
+                                  <div
+                                    key={task.id}
+                                    className="task-indicator"
+                                    style={{
+                                      backgroundColor: getTaskColor(task),
+                                    }}
+                                    title={task.title}
+                                  ></div>
+                                ))}
+                                {dayTasks.length > 2 && (
+                                  <div className="task-more">+{dayTasks.length - 2}</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+
+                {/* Selected Date Tasks */}
+                <div className="selected-date-container">
+                  <div className="selected-date-header">
+                    <h3>
+                      Tasks for {formatDateForDisplay(selectedDate)}
+                    </h3>
+                    <button
+                      className="quick-add-button"
+                      onClick={() => {
+                        setEditingTask(null);
+                        setTaskFormData({
+                          title: "",
+                          description: "",
+                          status: "Pending",
+                          priority: "Medium",
+                          dueDate: selectedDate.toISOString().split('T')[0],
+                        });
+                        setShowTaskModal(true);
+                      }}
+                    >
+                      + Add Task
+                    </button>
+                  </div>
+
+                  <div className="selected-date-tasks">
+                    {getTasksForDate(selectedDate).length === 0 ? (
+                      <p className="no-tasks-message">No tasks scheduled for this date</p>
+                    ) : (
+                      getTasksForDate(selectedDate).map((task) => (
+                        <div key={task.id} className="task-event-card">
+                          <div className="task-event-left">
+                            <div
+                              className="task-event-color"
+                              style={{
+                                backgroundColor: getTaskColor(task),
+                              }}
+                            ></div>
+                          </div>
+                          <div className="task-event-content">
+                            <h4>{task.title}</h4>
+                            {task.description && (
+                              <p className="task-description">{task.description}</p>
+                            )}
+                            <div className="task-event-meta">
+                              <span className={`status-badge status-${task.status.toLowerCase()}`}>
+                                {task.status}
+                              </span>
+                              <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
+                                {task.priority}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="task-event-actions">
+                            <button
+                              onClick={() => {
+                                setEditingTask(task);
+                                setTaskFormData({
+                                  title: task.title,
+                                  description: task.description,
+                                  status: task.status as "Pending" | "In Progress" | "Completed",
+                                  priority: task.priority as "Low" | "Medium" | "High",
+                                  dueDate: task.dueDate,
+                                });
+                                setShowTaskModal(true);
+                              }}
+                              className="icon-button"
+                              title="Edit task"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="icon-button delete"
+                              title="Delete task"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Today's Overview */}
+                  {getTodayTasks().length > 0 && (
+                    <div className="todays-overview">
+                      <h4>Today's Tasks ({getTodayTasks().length})</h4>
+                      <div className="today-tasks-list">
+                        {getTodayTasks().map((task) => (
+                          <div key={task.id} className="today-task-item">
+                            <span className="task-title">{task.title}</span>
+                            <span className={`status-badge status-${task.status.toLowerCase()}`}>
+                              {task.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
