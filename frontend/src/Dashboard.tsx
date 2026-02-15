@@ -107,6 +107,54 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  // Settings state
+  const [activeSettingsTab, setActiveSettingsTab] = useState("organization");
+  const [settingsData, setSettingsData] = useState({
+    // Organization Settings
+    organizationName: organizationName || "Your Company",
+    organizationEmail: "organization@email.com",
+    organizationPhone: "+1 (555) 000-0000",
+    organizationAddress: "123 Business Street, City, State 12345",
+    organizationWebsite: "www.company.com",
+    organizationLogo: "Logo URL",
+    
+    // Account Settings
+    accountTimeZone: "EST",
+    accountLanguage: "English",
+    accountDateFormat: "MM/DD/YYYY",
+    
+    // Security Settings
+    twoFactorEnabled: false,
+    passwordExpiry: "90",
+    loginAttempts: "5",
+    sessionTimeout: "30",
+    ipRestriction: false,
+    
+    // Notification Settings
+    emailNotifications: true,
+    taskReminders: true,
+    weeklyReports: false,
+    dailyDigest: true,
+    slackIntegration: false,
+    
+    // Privacy Settings
+    dataRetention: "12",
+    profileVisibility: "Team Only",
+    activityTracking: true,
+    analyticsTracking: true,
+    
+    // API Settings
+    apiKeysEnabled: false,
+    apiRateLimit: "1000",
+    webhooksEnabled: false,
+    
+    // System Settings
+    maintenanceMode: false,
+    autoBackup: true,
+    backupFrequency: "Daily",
+    debugMode: false,
+  });
+
   // Get userId from project-specific localStorage
   const getUserId = () => {
     const currentUser = localStorage.getItem(STORAGE_KEY);
@@ -1657,43 +1705,608 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           {activeTab === "settings" && (
             <div className="content-section">
-              <h2>Settings</h2>
-              <div className="section-card">
-                <div className="settings-group">
-                  <h3>Organization Settings</h3>
-                  <div className="setting-item">
-                    <label>Organization Name</label>
-                    <input type="text" defaultValue={organizationName} />
-                  </div>
-                  <div className="setting-item">
-                    <label>Email</label>
-                    <input type="email" placeholder="organization@email.com" />
-                  </div>
-                  <div className="setting-item">
-                    <label>Phone</label>
-                    <input type="tel" placeholder="+1 (555) 000-0000" />
-                  </div>
+              <h2>Settings & Configuration</h2>
+              
+              <div className="settings-container">
+                {/* Settings Sidebar Navigation */}
+                <div className="settings-sidebar">
+                  <nav className="settings-nav">
+                    <button
+                      className={`settings-nav-item ${activeSettingsTab === "organization" ? "active" : ""}`}
+                      onClick={() => setActiveSettingsTab("organization")}
+                    >
+                      <span className="nav-icon">🏢</span>
+                      <span className="nav-label">Organization</span>
+                    </button>
+                    <button
+                      className={`settings-nav-item ${activeSettingsTab === "account" ? "active" : ""}`}
+                      onClick={() => setActiveSettingsTab("account")}
+                    >
+                      <span className="nav-icon">👤</span>
+                      <span className="nav-label">Account</span>
+                    </button>
+                    <button
+                      className={`settings-nav-item ${activeSettingsTab === "security" ? "active" : ""}`}
+                      onClick={() => setActiveSettingsTab("security")}
+                    >
+                      <span className="nav-icon">🔒</span>
+                      <span className="nav-label">Security</span>
+                    </button>
+                    <button
+                      className={`settings-nav-item ${activeSettingsTab === "notifications" ? "active" : ""}`}
+                      onClick={() => setActiveSettingsTab("notifications")}
+                    >
+                      <span className="nav-icon">🔔</span>
+                      <span className="nav-label">Notifications</span>
+                    </button>
+                    <button
+                      className={`settings-nav-item ${activeSettingsTab === "privacy" ? "active" : ""}`}
+                      onClick={() => setActiveSettingsTab("privacy")}
+                    >
+                      <span className="nav-icon">🔐</span>
+                      <span className="nav-label">Privacy</span>
+                    </button>
+                    <button
+                      className={`settings-nav-item ${activeSettingsTab === "api" ? "active" : ""}`}
+                      onClick={() => setActiveSettingsTab("api")}
+                    >
+                      <span className="nav-icon">⚙️</span>
+                      <span className="nav-label">API</span>
+                    </button>
+                    <button
+                      className={`settings-nav-item ${activeSettingsTab === "system" ? "active" : ""}`}
+                      onClick={() => setActiveSettingsTab("system")}
+                    >
+                      <span className="nav-icon">💻</span>
+                      <span className="nav-label">System</span>
+                    </button>
+                  </nav>
                 </div>
 
-                <div className="settings-group">
-                  <h3>Notification Settings</h3>
-                  <label className="checkbox-label">
-                    <input type="checkbox" defaultChecked />
-                    <span>Email Notifications</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input type="checkbox" defaultChecked />
-                    <span>Task Reminders</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input type="checkbox" />
-                    <span>Weekly Reports</span>
-                  </label>
-                </div>
+                {/* Settings Content */}
+                <div className="settings-content">
+                  {/* Organization Settings */}
+                  {activeSettingsTab === "organization" && (
+                    <div className="settings-panel">
+                      <div className="panel-header">
+                        <h3>Organization Settings</h3>
+                        <p>Manage your organization details and branding</p>
+                      </div>
 
-                <div className="settings-actions">
-                  <button className="save-btn">Save Changes</button>
-                  <button className="cancel-btn">Cancel</button>
+                      <div className="settings-section">
+                        <h4>Basic Information</h4>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Organization Name *</label>
+                            <input
+                              type="text"
+                              value={settingsData.organizationName}
+                              onChange={(e) => setSettingsData({ ...settingsData, organizationName: e.target.value })}
+                              placeholder="Enter organization name"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Industry Type</label>
+                            <select>
+                              <option value="">Select Industry</option>
+                              <option value="tech">Technology</option>
+                              <option value="finance">Finance</option>
+                              <option value="retail">Retail</option>
+                              <option value="healthcare">Healthcare</option>
+                              <option value="other">Other</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Contact Information</h4>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Email Address</label>
+                            <input
+                              type="email"
+                              value={settingsData.organizationEmail}
+                              onChange={(e) => setSettingsData({ ...settingsData, organizationEmail: e.target.value })}
+                              placeholder="organization@email.com"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Phone Number</label>
+                            <input
+                              type="tel"
+                              value={settingsData.organizationPhone}
+                              onChange={(e) => setSettingsData({ ...settingsData, organizationPhone: e.target.value })}
+                              placeholder="+1 (555) 000-0000"
+                            />
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label>Address</label>
+                          <textarea
+                            value={settingsData.organizationAddress}
+                            onChange={(e) => setSettingsData({ ...settingsData, organizationAddress: e.target.value })}
+                            placeholder="123 Business Street, City, State 12345"
+                            rows={2}
+                          ></textarea>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Online Presence</h4>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Website URL</label>
+                            <input
+                              type="url"
+                              value={settingsData.organizationWebsite}
+                              onChange={(e) => setSettingsData({ ...settingsData, organizationWebsite: e.target.value })}
+                              placeholder="www.company.com"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Logo URL</label>
+                            <input
+                              type="url"
+                              value={settingsData.organizationLogo}
+                              onChange={(e) => setSettingsData({ ...settingsData, organizationLogo: e.target.value })}
+                              placeholder="Logo URL"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="settings-actions">
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Discard</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Account Settings */}
+                  {activeSettingsTab === "account" && (
+                    <div className="settings-panel">
+                      <div className="panel-header">
+                        <h3>Account Settings</h3>
+                        <p>Customize your account preferences</p>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Regional Preferences</h4>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Time Zone</label>
+                            <select value={settingsData.accountTimeZone} onChange={(e) => setSettingsData({ ...settingsData, accountTimeZone: e.target.value })}>
+                              <option value="EST">Eastern Standard Time</option>
+                              <option value="CST">Central Standard Time</option>
+                              <option value="MST">Mountain Standard Time</option>
+                              <option value="PST">Pacific Standard Time</option>
+                              <option value="GMT">Greenwich Mean Time</option>
+                            </select>
+                          </div>
+                          <div className="form-group">
+                            <label>Language</label>
+                            <select value={settingsData.accountLanguage} onChange={(e) => setSettingsData({ ...settingsData, accountLanguage: e.target.value })}>
+                              <option value="English">English</option>
+                              <option value="Spanish">Spanish</option>
+                              <option value="French">French</option>
+                              <option value="German">German</option>
+                              <option value="Chinese">Chinese</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label>Date Format</label>
+                          <select value={settingsData.accountDateFormat} onChange={(e) => setSettingsData({ ...settingsData, accountDateFormat: e.target.value })}>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Theme & Display</h4>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Color Scheme</label>
+                            <select>
+                              <option value="light">Light</option>
+                              <option value="dark">Dark</option>
+                              <option value="auto">Auto (based on system)</option>
+                            </select>
+                          </div>
+                          <div className="form-group">
+                            <label>Items Per Page</label>
+                            <select>
+                              <option value="10">10</option>
+                              <option value="25">25</option>
+                              <option value="50">50</option>
+                              <option value="100">100</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="settings-actions">
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Discard</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Security Settings */}
+                  {activeSettingsTab === "security" && (
+                    <div className="settings-panel">
+                      <div className="panel-header">
+                        <h3>Security Settings</h3>
+                        <p>Protect your account and data</p>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Authentication</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Two-Factor Authentication</label>
+                            <p className="setting-description">Add an extra layer of security to your account</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.twoFactorEnabled} onChange={(e) => setSettingsData({ ...settingsData, twoFactorEnabled: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Password Policy</h4>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Password Expiry (days)</label>
+                            <input
+                              type="number"
+                              value={settingsData.passwordExpiry}
+                              onChange={(e) => setSettingsData({ ...settingsData, passwordExpiry: e.target.value })}
+                              placeholder="90"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Failed Login Attempts</label>
+                            <input
+                              type="number"
+                              value={settingsData.loginAttempts}
+                              onChange={(e) => setSettingsData({ ...settingsData, loginAttempts: e.target.value })}
+                              placeholder="5"
+                            />
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label>Session Timeout (minutes)</label>
+                          <input
+                            type="number"
+                            value={settingsData.sessionTimeout}
+                            onChange={(e) => setSettingsData({ ...settingsData, sessionTimeout: e.target.value })}
+                            placeholder="30"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Access Control</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>IP Address Restriction</label>
+                            <p className="setting-description">Only allow access from specific IP addresses</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.ipRestriction} onChange={(e) => setSettingsData({ ...settingsData, ipRestriction: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                        {settingsData.ipRestriction && (
+                          <div className="form-group">
+                            <label>Allowed IP Addresses</label>
+                            <textarea placeholder="Enter IP addresses, one per line" rows={3}></textarea>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="settings-actions">
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Discard</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notification Settings */}
+                  {activeSettingsTab === "notifications" && (
+                    <div className="settings-panel">
+                      <div className="panel-header">
+                        <h3>Notification Preferences</h3>
+                        <p>Control how and when you receive notifications</p>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Email Notifications</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Email Notifications</label>
+                            <p className="setting-description">Receive important updates via email</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.emailNotifications} onChange={(e) => setSettingsData({ ...settingsData, emailNotifications: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Task Reminders</label>
+                            <p className="setting-description">Get notified about upcoming task deadlines</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.taskReminders} onChange={(e) => setSettingsData({ ...settingsData, taskReminders: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Report & Summary</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Weekly Reports</label>
+                            <p className="setting-description">Receive weekly team performance reports</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.weeklyReports} onChange={(e) => setSettingsData({ ...settingsData, weeklyReports: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Daily Digest</label>
+                            <p className="setting-description">Get a daily summary of activities</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.dailyDigest} onChange={(e) => setSettingsData({ ...settingsData, dailyDigest: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Integrations</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Slack Notifications</label>
+                            <p className="setting-description">Send notifications to Slack</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.slackIntegration} onChange={(e) => setSettingsData({ ...settingsData, slackIntegration: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-actions">
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Discard</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Privacy Settings */}
+                  {activeSettingsTab === "privacy" && (
+                    <div className="settings-panel">
+                      <div className="panel-header">
+                        <h3>Privacy & Data</h3>
+                        <p>Manage your privacy preferences and data</p>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Data Retention</h4>
+                        <div className="form-group">
+                          <label>Retain Data For (months)</label>
+                          <input
+                            type="number"
+                            value={settingsData.dataRetention}
+                            onChange={(e) => setSettingsData({ ...settingsData, dataRetention: e.target.value })}
+                            placeholder="12"
+                          />
+                          <p className="setting-description">Automatically delete data older than specified period</p>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Profile Visibility</h4>
+                        <div className="form-group">
+                          <label>Who can see your profile?</label>
+                          <select value={settingsData.profileVisibility} onChange={(e) => setSettingsData({ ...settingsData, profileVisibility: e.target.value })}>
+                            <option value="Private">Private (Only me)</option>
+                            <option value="Team Only">Team Only</option>
+                            <option value="Organization">Organization</option>
+                            <option value="Public">Public</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Activity & Analytics</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Activity Tracking</label>
+                            <p className="setting-description">Allow system to track your activity for analytics</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.activityTracking} onChange={(e) => setSettingsData({ ...settingsData, activityTracking: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Analytics Tracking</label>
+                            <p className="setting-description">Help us improve by sharing analytics data</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.analyticsTracking} onChange={(e) => setSettingsData({ ...settingsData, analyticsTracking: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-actions">
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Discard</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* API Settings */}
+                  {activeSettingsTab === "api" && (
+                    <div className="settings-panel">
+                      <div className="panel-header">
+                        <h3>API & Integration</h3>
+                        <p>Manage API keys and integrations</p>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>API Access</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Enable API Access</label>
+                            <p className="setting-description">Allow third-party applications to access your data</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.apiKeysEnabled} onChange={(e) => setSettingsData({ ...settingsData, apiKeysEnabled: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {settingsData.apiKeysEnabled && (
+                        <div className="settings-section">
+                          <h4>API Keys</h4>
+                          <div className="api-key-item">
+                            <div className="api-key-info">
+                              <p className="api-key-name">Production Key</p>
+                              <p className="api-key-value">sk_live_1234567890abcdef...</p>
+                              <p className="api-key-meta">Created on Feb 15, 2026</p>
+                            </div>
+                            <button className="btn-small">Regenerate</button>
+                          </div>
+                          <button className="btn-secondary">+ Generate New Key</button>
+                        </div>
+                      )}
+
+                      <div className="settings-section">
+                        <h4>Rate Limiting</h4>
+                        <div className="form-group">
+                          <label>API Rate Limit (requests/hour)</label>
+                          <input
+                            type="number"
+                            value={settingsData.apiRateLimit}
+                            onChange={(e) => setSettingsData({ ...settingsData, apiRateLimit: e.target.value })}
+                            placeholder="1000"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Webhooks</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Enable Webhooks</label>
+                            <p className="setting-description">Receive real-time event notifications</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.webhooksEnabled} onChange={(e) => setSettingsData({ ...settingsData, webhooksEnabled: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-actions">
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Discard</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* System Settings */}
+                  {activeSettingsTab === "system" && (
+                    <div className="settings-panel">
+                      <div className="panel-header">
+                        <h3>System Administration</h3>
+                        <p>System-wide configuration and maintenance</p>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Maintenance</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Maintenance Mode</label>
+                            <p className="setting-description">Temporarily disable access for non-admins</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.maintenanceMode} onChange={(e) => setSettingsData({ ...settingsData, maintenanceMode: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Backup & Recovery</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Automatic Backups</label>
+                            <p className="setting-description">Automatically backup your data</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.autoBackup} onChange={(e) => setSettingsData({ ...settingsData, autoBackup: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                        {settingsData.autoBackup && (
+                          <div className="form-group">
+                            <label>Backup Frequency</label>
+                            <select value={settingsData.backupFrequency} onChange={(e) => setSettingsData({ ...settingsData, backupFrequency: e.target.value })}>
+                              <option value="Hourly">Hourly</option>
+                              <option value="Daily">Daily</option>
+                              <option value="Weekly">Weekly</option>
+                              <option value="Monthly">Monthly</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Debugging</h4>
+                        <div className="toggle-item">
+                          <div className="toggle-content">
+                            <label>Debug Mode</label>
+                            <p className="setting-description">Enable detailed error logging and debugging</p>
+                          </div>
+                          <label className="toggle-switch">
+                            <input type="checkbox" checked={settingsData.debugMode} onChange={(e) => setSettingsData({ ...settingsData, debugMode: e.target.checked })} />
+                            <span></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="settings-section">
+                        <h4>Danger Zone</h4>
+                        <div className="danger-zone">
+                          <button className="btn-danger">Clear All Cache</button>
+                          <button className="btn-danger">Reset to Defaults</button>
+                          <button className="btn-danger">Delete All Data</button>
+                        </div>
+                      </div>
+
+                      <div className="settings-actions">
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Discard</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
