@@ -171,6 +171,63 @@ const Dashboard: React.FC<DashboardProps> = ({
     return "#3b82f6"; // blue
   };
 
+  // Analytics helper functions
+  const getTaskStats = () => {
+    const completed = tasks.filter(t => t.status === "Completed").length;
+    const inProgress = tasks.filter(t => t.status === "In Progress").length;
+    const pending = tasks.filter(t => t.status === "Pending").length;
+    const total = tasks.length;
+    
+    return {
+      total,
+      completed,
+      inProgress,
+      pending,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  };
+
+  const getPriorityStats = () => {
+    const high = tasks.filter(t => t.priority === "High").length;
+    const medium = tasks.filter(t => t.priority === "Medium").length;
+    const low = tasks.filter(t => t.priority === "Low").length;
+    return { high, medium, low };
+  };
+
+  const getDepartmentStats = () => {
+    const dept: Record<string, number> = {};
+    employees.forEach(emp => {
+      dept[emp.department] = (dept[emp.department] || 0) + 1;
+    });
+    return Object.entries(dept).map(([name, count]) => ({ name, count }));
+  };
+
+  const getProductivityTrend = () => {
+    // Mock data for 7 days
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days.map((day, idx) => ({
+      day,
+      value: 65 + Math.floor(Math.random() * 35),
+    }));
+  };
+
+  const getTaskCompletionTrend = () => {
+    const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    return weeks.map((week, idx) => ({
+      week,
+      completed: 5 + idx * 3,
+      total: 15 + idx * 2,
+    }));
+  };
+
+  const getEmployeePerformance = () => {
+    const names = ['Alice Johnson', 'Bob Wilson', 'Catherine Lee', 'David Park', 'Emma Brown'];
+    return names.map(name => ({
+      name,
+      performance: 55 + Math.floor(Math.random() * 40),
+    }));
+  };
+
   // Fetch data on component mount
   useEffect(() => {
     if (userId) {
@@ -537,6 +594,149 @@ const Dashboard: React.FC<DashboardProps> = ({
     { week: "Week 3", completed: 18, inProgress: 3, pending: 2 },
     { week: "Week 4", completed: 20, inProgress: 4, pending: 1 },
   ];
+
+  // SVG Chart Components
+  const PieChart = ({ data, colors, title }: { data: Array<{ label: string; value: number }>; colors: string[]; title: string }) => {
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    let currentAngle = -90;
+
+    const segments = data.map((item, idx) => {
+      const sliceAngle = (item.value / total) * 360;
+      const startAngle = (currentAngle * Math.PI) / 180;
+      const endAngle = ((currentAngle + sliceAngle) * Math.PI) / 180;
+
+      const x1 = 100 + 90 * Math.cos(startAngle);
+      const y1 = 100 + 90 * Math.sin(startAngle);
+      const x2 = 100 + 90 * Math.cos(endAngle);
+      const y2 = 100 + 90 * Math.sin(endAngle);
+
+      const largeArc = sliceAngle > 180 ? 1 : 0;
+      const pathData = [
+        `M 100 100`,
+        `L ${x1} ${y1}`,
+        `A 90 90 0 ${largeArc} 1 ${x2} ${y2}`,
+        `Z`,
+      ].join(' ');
+
+      currentAngle += sliceAngle;
+
+      return (
+        <g key={idx}>
+          <path d={pathData} fill={colors[idx % colors.length]} stroke="white" strokeWidth="2" />
+        </g>
+      );
+    });
+
+    return (
+      <svg viewBox="0 0 200 200" style={{ maxWidth: "200px", height: "200px" }}>
+        {segments}
+      </svg>
+    );
+  };
+
+  const LineChart = ({ data, title, maxValue }: { data: Array<{ day?: string; week?: string; value?: number; completed?: number; total?: number }>; title: string; maxValue?: number }) => {
+    const width = 400;
+    const height = 200;
+    const padding = 40;
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2;
+
+    const max = maxValue || Math.max(...data.map(d => d.value || d.completed || 0));
+    const points = data.map((d, idx) => {
+      const x = padding + (idx / (data.length - 1)) * chartWidth;
+      const y = height - padding - ((d.value || d.completed || 0) / max) * chartHeight;
+      return { x, y, value: d.value || d.completed || 0 };
+    });
+
+    const pathData = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+    return (
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ maxWidth: "100%", height: "auto" }}>
+        {/* Grid lines */}
+        {[0, 1, 2, 3, 4].map(i => (
+          <line
+            key={`grid-${i}`}
+            x1={padding}
+            y1={padding + (i * chartHeight) / 4}
+            x2={width - padding}
+            y2={padding + (i * chartHeight) / 4}
+            stroke="#e2e8f0"
+            strokeDasharray="4"
+          />
+        ))}
+
+        {/* Axes */}
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#64748b" strokeWidth="2" />
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#64748b" strokeWidth="2" />
+
+        {/* Line */}
+        <path d={pathData} fill="none" stroke="#0ea5e9" strokeWidth="3" />
+
+        {/* Points */}
+        {points.map((p, idx) => (
+          <circle key={idx} cx={p.x} cy={p.y} r="4" fill="#0ea5e9" />
+        ))}
+
+        {/* Labels */}
+        {data.map((d, idx) => {
+          const x = padding + (idx / (data.length - 1)) * chartWidth;
+          return (
+            <text key={`label-${idx}`} x={x} y={height - padding + 20} textAnchor="middle" fontSize="12" fill="#64748b">
+              {d.day || d.week || ""}
+            </text>
+          );
+        })}
+      </svg>
+    );
+  };
+
+  const BarChart = ({ data, title }: { data: Array<{ name: string; performance: number }>; title: string }) => {
+    const width = 400;
+    const height = 250;
+    const padding = 40;
+    const barWidth = (width - padding * 2) / data.length;
+    const chartHeight = height - padding * 2;
+
+    return (
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ maxWidth: "100%", height: "auto" }}>
+        {/* Axes */}
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#64748b" strokeWidth="2" />
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#64748b" strokeWidth="2" />
+
+        {/* Bars */}
+        {data.map((item, idx) => {
+          const barHeight = (item.performance / 100) * chartHeight;
+          const x = padding + idx * barWidth + barWidth * 0.1;
+          const y = height - padding - barHeight;
+
+          return (
+            <g key={idx}>
+              <rect x={x} y={y} width={barWidth * 0.8} height={barHeight} fill="#0ea5e9" rx="4" />
+              <text
+                x={x + barWidth * 0.4}
+                y={height - padding + 20}
+                textAnchor="middle"
+                fontSize="12"
+                fill="#64748b"
+              >
+                {item.name.split(' ')[0]}
+              </text>
+              <text
+                x={x + barWidth * 0.4}
+                y={y - 5}
+                textAnchor="middle"
+                fontSize="11"
+                fontWeight="bold"
+                fill="#0f172a"
+              >
+                {item.performance}%
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
 
   return (
     <div className="dashboard-container">
@@ -1234,26 +1434,221 @@ const Dashboard: React.FC<DashboardProps> = ({
           {activeTab === "reports" && (
             <div className="content-section">
               <h2>Reports & Analytics</h2>
-              <div className="reports-grid">
-                <div className="section-card">
-                  <h3>Productivity Score</h3>
-                  <div className="report-chart">
-                    <div className="chart-bar" style={{ width: "85%" }}></div>
-                    <p>85% - Team performing above target</p>
+
+              {/* Key Metrics Cards */}
+              <div className="metrics-grid">
+                <div className="metric-card">
+                  <div className="metric-icon" style={{ backgroundColor: "#0ea5e9" }}>📊</div>
+                  <h3>Total Tasks</h3>
+                  <p className="metric-value">{getTaskStats().total}</p>
+                  <p className="metric-label">Across all projects</p>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-icon" style={{ backgroundColor: "#10b981" }}>✓</div>
+                  <h3>Completed</h3>
+                  <p className="metric-value">{getTaskStats().completed}</p>
+                  <p className="metric-label">{getTaskStats().completionRate}% completion rate</p>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-icon" style={{ backgroundColor: "#f59e0b" }}>⏳</div>
+                  <h3>In Progress</h3>
+                  <p className="metric-value">{getTaskStats().inProgress}</p>
+                  <p className="metric-label">Active tasks</p>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-icon" style={{ backgroundColor: "#ef4444" }}>⚠️</div>
+                  <h3>Pending</h3>
+                  <p className="metric-value">{getTaskStats().pending}</p>
+                  <p className="metric-label">Awaiting action</p>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-icon" style={{ backgroundColor: "#8b5cf6" }}>👥</div>
+                  <h3>Team Members</h3>
+                  <p className="metric-value">{employees.length}</p>
+                  <p className="metric-label">Active employees</p>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-icon" style={{ backgroundColor: "#ec4899" }}>📁</div>
+                  <h3>Total Files</h3>
+                  <p className="metric-value">{files.length}</p>
+                  <p className="metric-label">Uploaded documents</p>
+                </div>
+              </div>
+
+              {/* Charts Section */}
+              <div className="charts-section">
+                {/* First Row */}
+                <div className="chart-row">
+                  {/* Task Status Pie Chart */}
+                  <div className="chart-card">
+                    <h3>Task Status Distribution</h3>
+                    <div className="chart-wrapper">
+                      <div className="chart-display">
+                        <PieChart
+                          data={[
+                            { label: "Completed", value: getTaskStats().completed },
+                            { label: "In Progress", value: getTaskStats().inProgress },
+                            { label: "Pending", value: getTaskStats().pending },
+                          ]}
+                          colors={["#10b981", "#3b82f6", "#f59e0b"]}
+                          title="Task Status"
+                        />
+                      </div>
+                      <div className="chart-legend">
+                        <div className="legend-item">
+                          <span className="legend-color" style={{ backgroundColor: "#10b981" }}></span>
+                          <span>Completed</span>
+                          <span className="legend-value">{getTaskStats().completed}</span>
+                        </div>
+                        <div className="legend-item">
+                          <span className="legend-color" style={{ backgroundColor: "#3b82f6" }}></span>
+                          <span>In Progress</span>
+                          <span className="legend-value">{getTaskStats().inProgress}</span>
+                        </div>
+                        <div className="legend-item">
+                          <span className="legend-color" style={{ backgroundColor: "#f59e0b" }}></span>
+                          <span>Pending</span>
+                          <span className="legend-value">{getTaskStats().pending}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Priority Distribution Pie Chart */}
+                  <div className="chart-card">
+                    <h3>Task Priority Breakdown</h3>
+                    <div className="chart-wrapper">
+                      <div className="chart-display">
+                        <PieChart
+                          data={[
+                            { label: "High", value: getPriorityStats().high },
+                            { label: "Medium", value: getPriorityStats().medium },
+                            { label: "Low", value: getPriorityStats().low },
+                          ]}
+                          colors={["#ef4444", "#f59e0b", "#3b82f6"]}
+                          title="Task Priority"
+                        />
+                      </div>
+                      <div className="chart-legend">
+                        <div className="legend-item">
+                          <span className="legend-color" style={{ backgroundColor: "#ef4444" }}></span>
+                          <span>High</span>
+                          <span className="legend-value">{getPriorityStats().high}</span>
+                        </div>
+                        <div className="legend-item">
+                          <span className="legend-color" style={{ backgroundColor: "#f59e0b" }}></span>
+                          <span>Medium</span>
+                          <span className="legend-value">{getPriorityStats().medium}</span>
+                        </div>
+                        <div className="legend-item">
+                          <span className="legend-color" style={{ backgroundColor: "#3b82f6" }}></span>
+                          <span>Low</span>
+                          <span className="legend-value">{getPriorityStats().low}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Department Distribution */}
+                  <div className="chart-card">
+                    <h3>Team by Department</h3>
+                    <div className="chart-wrapper">
+                      <div className="chart-display">
+                        <PieChart
+                          data={getDepartmentStats().map(d => ({ label: d.name, value: d.count }))}
+                          colors={["#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"]}
+                          title="Departments"
+                        />
+                      </div>
+                      <div className="chart-legend">
+                        {getDepartmentStats().map((dept, idx) => (
+                          <div key={idx} className="legend-item">
+                            <span className="legend-color" style={{ backgroundColor: ["#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"][idx] }}></span>
+                            <span>{dept.name}</span>
+                            <span className="legend-value">{dept.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="section-card">
-                  <h3>Project Completion</h3>
-                  <div className="report-chart">
-                    <div className="chart-bar complete" style={{ width: "72%" }}></div>
-                    <p>72% - 18 of 25 projects completed</p>
+
+                {/* Second Row - Line Charts */}
+                <div className="chart-row">
+                  <div className="chart-card full-width">
+                    <h3>Productivity Trend (Last 7 Days)</h3>
+                    <div className="line-chart-container">
+                      <LineChart data={getProductivityTrend()} title="Daily Productivity" maxValue={100} />
+                    </div>
+                    <div className="chart-stats">
+                      <div className="stat-box">
+                        <span className="stat-label">Average</span>
+                        <span className="stat-value">82%</span>
+                      </div>
+                      <div className="stat-box">
+                        <span className="stat-label">Peak</span>
+                        <span className="stat-value">95%</span>
+                      </div>
+                      <div className="stat-box">
+                        <span className="stat-label">Trend</span>
+                        <span className="stat-value" style={{ color: "#10b981" }}>↑ 12%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="section-card">
-                  <h3>Attendance Rate</h3>
-                  <div className="report-chart">
-                    <div className="chart-bar" style={{ width: "96%" }}></div>
-                    <p>96% - Excellent attendance</p>
+
+                {/* Third Row - Task Completion and Performance */}
+                <div className="chart-row">
+                  <div className="chart-card full-width">
+                    <h3>Task Completion Trend (Monthly)</h3>
+                    <div className="line-chart-container">
+                      <LineChart data={getTaskCompletionTrend()} title="Monthly Completion" maxValue={25} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fourth Row - Employee Performance */}
+                <div className="chart-row">
+                  <div className="chart-card full-width">
+                    <h3>Employee Performance Score</h3>
+                    <div className="bar-chart-container">
+                      <BarChart data={getEmployeePerformance()} title="Performance" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fifth Row - Summary Cards */}
+                <div className="summary-cards">
+                  <div className="summary-card">
+                    <h4>Overall Productivity</h4>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: "85%" }}></div>
+                    </div>
+                    <p className="progress-text">85% • Team performing above target</p>
+                  </div>
+
+                  <div className="summary-card">
+                    <h4>Project Completion</h4>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: "72%", backgroundColor: "#10b981" }}></div>
+                    </div>
+                    <p className="progress-text">72% • 18 of 25 projects completed</p>
+                  </div>
+
+                  <div className="summary-card">
+                    <h4>Team Attendance</h4>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: "96%", backgroundColor: "#8b5cf6" }}></div>
+                    </div>
+                    <p className="progress-text">96% • Excellent attendance record</p>
+                  </div>
+
+                  <div className="summary-card">
+                    <h4>Quality Metrics</h4>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: "88%", backgroundColor: "#ec4899" }}></div>
+                    </div>
+                    <p className="progress-text">88% • High quality standards met</p>
                   </div>
                 </div>
               </div>
