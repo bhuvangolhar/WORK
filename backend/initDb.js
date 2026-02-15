@@ -1,6 +1,6 @@
 const pool = require("./db");
 
-// Create users, employees and tasks tables if they don't exist
+// Create users, employees, tasks and files tables if they don't exist
 const initializeDatabase = async () => {
   try {
     const connection = await pool.getConnection();
@@ -58,9 +58,31 @@ const initializeDatabase = async () => {
       )
     `;
 
+    const createFilesTableQuery = `
+      CREATE TABLE IF NOT EXISTS files (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT NOT NULL,
+        fileName VARCHAR(255) NOT NULL,
+        originalFileName VARCHAR(255) NOT NULL,
+        fileType VARCHAR(50),
+        fileSize INT,
+        fileCategory ENUM('Note', 'Document', 'Data', 'Statistics', 'Report', 'Other', 'Spreadsheet', 'Presentation') DEFAULT 'Document',
+        description TEXT,
+        tags VARCHAR(500),
+        uploadedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        filePath VARCHAR(500),
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX (userId),
+        INDEX (fileCategory),
+        FULLTEXT INDEX ftSearch (fileName, description, tags)
+      )
+    `;
+
     await connection.execute(createUsersTableQuery);
     await connection.execute(createEmployeesTableQuery);
     await connection.execute(createTasksTableQuery);
+    await connection.execute(createFilesTableQuery);
     
     console.log("Database tables initialized successfully");
     connection.release();

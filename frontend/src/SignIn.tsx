@@ -23,7 +23,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignInSuccess, onGoToSignUp }) => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/signin", {
+      const response = await fetch("http://localhost:3001/api/auth/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

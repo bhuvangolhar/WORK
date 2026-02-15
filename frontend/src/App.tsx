@@ -13,26 +13,72 @@ interface CurrentUser {
   phoneNo: string;
 }
 
+// Project-specific configuration
+const API_ENDPOINT = "http://localhost:3001";
+const PROJECT_ID = "WORK_PROJECT_3001"; // Unique identifier for this project
+const STORAGE_KEY = `currentUser_${PROJECT_ID}`;
+const PROJECT_KEY = `projectId_${PROJECT_ID}`;
+
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on app mount
+  // Load user from localStorage on app mount with project validation
   useEffect(() => {
-    const savedUser = localStorage.getItem("currentUser");
+    const savedProjectId = localStorage.getItem(PROJECT_KEY);
+    const savedUser = localStorage.getItem(STORAGE_KEY);
+    
+    // Clear data if project ID doesn't match (prevents cross-project user leakage)
+    if (savedProjectId !== PROJECT_ID) {
+      // Clear all project-related localStorage items
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("currentUser_") || key.startsWith("projectId_")) {
+          localStorage.removeItem(key);
+        }
+      });
+      setLoading(false);
+      return;
+    }
+    
     if (savedUser) {
       try {
         const user = JSON.parse(savedUser);
+        
+        // Verify user exists in current backend by making a test call
+        verifyUserExists(user);
+        
         setCurrentUser(user);
         setCurrentPage("dashboard");
       } catch (error) {
         console.error("Error loading user from localStorage:", error);
-        localStorage.removeItem("currentUser");
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(PROJECT_KEY);
       }
     }
     setLoading(false);
   }, []);
+
+  // Verify user exists in the current backend database
+  const verifyUserExists = async (user: CurrentUser) => {
+    try {
+      const response = await fetch(`${API_ENDPOINT}/api/auth/users`);
+      const data = await response.json();
+      if (data.success && Array.isArray(data.users)) {
+        // Check if the current user exists in the database
+        const userExists = data.users.some((dbUser: any) => dbUser.id === user.id);
+        if (!userExists) {
+          // User doesn't exist in this project's database, clear the cache
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(PROJECT_KEY);
+          setCurrentUser(null);
+          setCurrentPage("home");
+        }
+      }
+    } catch (error) {
+      console.error("Error verifying user existence:", error);
+    }
+  };
 
   const handleEnterWorkspace = () => {
     setCurrentPage("signin");
@@ -40,7 +86,9 @@ const App: React.FC = () => {
 
   const handleSignInSuccess = (user: CurrentUser) => {
     setCurrentUser(user);
-    localStorage.setItem("currentUser", JSON.stringify(user));
+    // Store with project-specific keys
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    localStorage.setItem(PROJECT_KEY, PROJECT_ID);
     setCurrentPage("dashboard");
   };
 
@@ -50,7 +98,9 @@ const App: React.FC = () => {
 
   const handleSignUpSuccess = (user: CurrentUser) => {
     setCurrentUser(user);
-    localStorage.setItem("currentUser", JSON.stringify(user));
+    // Store with project-specific keys
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    localStorage.setItem(PROJECT_KEY, PROJECT_ID);
     setCurrentPage("dashboard");
   };
 
@@ -60,7 +110,9 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    localStorage.removeItem("currentUser");
+    // Clear project-specific localStorage
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(PROJECT_KEY);
     setCurrentPage("home");
   };
 

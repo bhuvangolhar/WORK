@@ -31,12 +31,32 @@ interface Employee {
   salary: number;
 }
 
+interface FileData {
+  id: number;
+  userId: number;
+  fileName: string;
+  originalFileName: string;
+  fileType: string;
+  fileSize: number;
+  fileCategory: "Note" | "Document" | "Data" | "Statistics" | "Report" | "Other" | "Spreadsheet" | "Presentation";
+  description: string;
+  tags: string;
+  uploadedDate: string;
+  updatedDate: string;
+  filePath: string;
+}
+
 interface DashboardProps {
   userName: string;
   organizationName: string;
   onLogout: () => void;
   userId?: number;
 }
+
+// Project-specific configuration (must match App.tsx)
+const API_ENDPOINT = "http://localhost:3001";
+const PROJECT_ID = "WORK_PROJECT_3001";
+const STORAGE_KEY = `currentUser_${PROJECT_ID}`;
 
 const Dashboard: React.FC<DashboardProps> = ({
   userName,
@@ -47,11 +67,17 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [files, setFiles] = useState<FileData[]>([]);
+  const [fileStats, setFileStats] = useState({ totalFiles: 0, totalSize: 0, byCategory: [] });
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fileSearch, setFileSearch] = useState("");
+  const [fileCategory, setFileCategory] = useState("All");
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [taskFormData, setTaskFormData] = useState({
     title: "",
     description: "",
@@ -76,9 +102,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     salary: "",
   });
 
-  // Get userId from localStorage
+  // Get userId from project-specific localStorage
   const getUserId = () => {
-    const currentUser = localStorage.getItem("currentUser");
+    const currentUser = localStorage.getItem(STORAGE_KEY);
     if (currentUser) {
       const user = JSON.parse(currentUser);
       return user.id || propUserId;
@@ -98,7 +124,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/tasks/${userId}`);
+      const response = await fetch(`http://localhost:3001/api/tasks/${userId}`);
       const data = await response.json();
       if (data.success) {
         setTasks(data.tasks);
@@ -110,7 +136,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/employees/${userId}`);
+      const response = await fetch(`http://localhost:3001/api/employees/${userId}`);
       const data = await response.json();
       if (data.success) {
         setEmployees(data.employees);
@@ -148,7 +174,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const handleDeleteTask = async (taskId: number) => {
     if (confirm("Are you sure you want to delete this task?")) {
       try {
-        const response = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+        const response = await fetch(`http://localhost:3001/api/tasks/${taskId}`, {
           method: "DELETE",
         });
         const data = await response.json();
@@ -171,7 +197,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       setLoading(true);
 
       if (editingTask) {
-        const response = await fetch(`http://localhost:5000/api/tasks/${editingTask.id}`, {
+        const response = await fetch(`http://localhost:3001/api/tasks/${editingTask.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(taskFormData),
@@ -182,7 +208,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           setShowTaskModal(false);
         }
       } else {
-        const response = await fetch("http://localhost:5000/api/tasks", {
+        const response = await fetch("http://localhost:3001/api/tasks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -249,7 +275,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const handleDeleteEmployee = async (employeeId: number) => {
     if (confirm("Are you sure you want to delete this employee?")) {
       try {
-        const response = await fetch(`http://localhost:5000/api/employees/${employeeId}`, {
+        const response = await fetch(`http://localhost:3001/api/employees/${employeeId}`, {
           method: "DELETE",
         });
         const data = await response.json();
@@ -286,7 +312,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           setShowEmployeeModal(false);
         }
       } else {
-        const response = await fetch("http://localhost:5000/api/employees", {
+        const response = await fetch("http://localhost:3001/api/employees", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -307,6 +333,104 @@ const Dashboard: React.FC<DashboardProps> = ({
       setLoading(false);
     }
   };
+
+  // File Management Functions
+  const fetchFiles = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (fileCategory !== "All") params.append("category", fileCategory);
+      if (fileSearch) params.append("search", fileSearch);
+
+      const response = await fetch(`http://localhost:3001/api/files/${userId}?${params}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFiles(data.files);
+      }
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
+
+  const fetchFileStats = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/files/${userId}/stats`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFileStats(data.stats);
+      }
+    } catch (error) {
+      console.error("Error fetching file stats:", error);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = event.target.files;
+    if (!fileList) return;
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userId", userId.toString());
+      formData.append("fileCategory", fileCategory !== "All" ? fileCategory : "Document");
+
+      try {
+        setUploadProgress(Math.floor(((i + 1) / fileList.length) * 100));
+        const response = await fetch("http://localhost:3001/api/files/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await response.json();
+        if (data.success) {
+          fetchFiles();
+          fetchFileStats();
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+    }
+    setUploadProgress(0);
+    event.target.value = "";
+  };
+
+  const handleDeleteFile = async (fileId: number) => {
+    if (confirm("Are you sure you want to delete this file?")) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/files/${fileId}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
+        if (data.success) {
+          fetchFiles();
+          fetchFileStats();
+        }
+      } catch (error) {
+        console.error("Error deleting file:", error);
+      }
+    }
+  };
+
+  const handleDownloadFile = (fileId: number, fileName: string) => {
+    const link = document.createElement("a");
+    link.href = `http://localhost:3001/api/files/download/${fileId}`;
+    link.download = fileName;
+    link.click();
+  };
+
+  // Fetch files when tab changes or search/category changes
+  useEffect(() => {
+    if (activeTab === "files" && userId) {
+      fetchFiles();
+      fetchFileStats();
+    }
+  }, [activeTab, userId, fileSearch, fileCategory]);
+
 
   // Calculate anniversaries
   const today = new Date();
@@ -405,6 +529,13 @@ const Dashboard: React.FC<DashboardProps> = ({
             >
               <span className="nav-icon">📋</span>
               <span>Tasks</span>
+            </button>
+            <button
+              className={`nav-item ${activeTab === "files" ? "active" : ""}`}
+              onClick={() => setActiveTab("files")}
+            >
+              <span className="nav-icon">📁</span>
+              <span>Files</span>
             </button>
             <button
               className={`nav-item ${activeTab === "schedule" ? "active" : ""}`}
@@ -744,6 +875,111 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <div className="task-actions">
                           <button className="edit-btn" onClick={() => handleEditTask(task)}>Edit</button>
                           <button className="delete-btn" onClick={() => handleDeleteTask(task.id)}>Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "files" && (
+            <div className="content-section">
+              <h2>📁 Files & Documents</h2>
+              
+              {/* File Statistics */}
+              <div className="file-stats-grid">
+                <div className="stat-card">
+                  <p className="stat-value">{fileStats.totalFiles}</p>
+                  <p className="stat-label">Total Files</p>
+                </div>
+                <div className="stat-card">
+                  <p className="stat-value">{(fileStats.totalSize / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="stat-label">Total Size</p>
+                </div>
+              </div>
+
+              {/* Upload Area */}
+              <div className="section-card">
+                <div className="upload-area">
+                  <label className="upload-label">
+                    <div className="upload-content">
+                      <div className="upload-icon">📤</div>
+                      <p className="upload-text">Drag and drop files here or click to browse</p>
+                      <p className="upload-hint">Supported: PDF, Word, Excel, Images, Text, ZIP (Max 50MB)</p>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileUpload}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  </label>
+                  {uploadProgress > 0 && (
+                    <div className="upload-progress">
+                      <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+                      <p>{uploadProgress}%</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Search and Filter */}
+              <div className="section-card">
+                <div className="file-controls">
+                  <input
+                    type="text"
+                    placeholder="Search files..."
+                    value={fileSearch}
+                    onChange={(e) => setFileSearch(e.target.value)}
+                    className="file-search"
+                  />
+                  <select
+                    value={fileCategory}
+                    onChange={(e) => setFileCategory(e.target.value)}
+                    className="file-category-filter"
+                  >
+                    <option value="All">All Categories</option>
+                    <option value="Note">Notes</option>
+                    <option value="Document">Documents</option>
+                    <option value="Data">Data</option>
+                    <option value="Statistics">Statistics</option>
+                    <option value="Report">Reports</option>
+                    <option value="Spreadsheet">Spreadsheets</option>
+                    <option value="Presentation">Presentations</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {/* Files List */}
+                {files.length === 0 ? (
+                  <p style={{ textAlign: "center", padding: "40px 20px", color: "#64748b" }}>
+                    No files yet. Upload files to get started.
+                  </p>
+                ) : (
+                  <div className="files-grid">
+                    {files.map((file) => (
+                      <div key={file.id} className="file-card">
+                        <div className="file-icon">
+                          {file.fileType.includes("pdf") ? "📄" : file.fileType.includes("word") ? "📝" : file.fileType.includes("sheet") ? "📊" : file.fileType.includes("image") ? "🖼️" : "📎"}
+                        </div>
+                        <div className="file-info">
+                          <h4>{file.originalFileName}</h4>
+                          <p className="file-meta">
+                            {(file.fileSize / 1024).toFixed(2)} KB • {new Date(file.uploadedDate).toLocaleDateString()}
+                          </p>
+                          <p className="file-category-badge">{file.fileCategory}</p>
+                          {file.description && <p className="file-description">{file.description}</p>}
+                          {file.tags && <p className="file-tags">Tags: {file.tags}</p>}
+                        </div>
+                        <div className="file-actions">
+                          <button className="download-btn" onClick={() => handleDownloadFile(file.id, file.originalFileName)}>
+                            Download
+                          </button>
+                          <button className="delete-btn" onClick={() => handleDeleteFile(file.id)}>
+                            Delete
+                          </button>
                         </div>
                       </div>
                     ))}
